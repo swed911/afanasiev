@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class BlogCategoryCreateRequest extends FormRequest
 {
     /**
-     * 
+     *
 
      */
     public function authorize()

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Blog\Admin;
 
 use App\Http\Controllers\Blog\BaseController;
 use App\Http\Requests\BlogCategoryUpdateRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\BlogCategoryCreateRequest;
 use App\Models\BlogCategory;
 
 class CategoryController extends BaseController
@@ -47,9 +47,16 @@ class CategoryController extends BaseController
             $data['slug'] = str_slug($data['title']);
         }
 
-    // Создаст объект, но не добавит в БД
-        $item = new BlogCategory($data);
-        $item->save();
+        $item = (new BlogCategory())->create($data);
+        if($item) {
+            return redirect()
+                ->route('blog.admin.categories.edit', [$item->id])
+                ->with(['success' => 'Успешно сохранено']);
+        } else {
+            return back()
+                ->withErrors(['msg' => 'Ошибка сохранения'])
+                ->withInput();
+        }
     }
 
 
@@ -77,14 +84,6 @@ class CategoryController extends BaseController
      */
     public function update(BlogCategoryUpdateRequest $request, $id)
     {
-        /*$rules = [
-            'title' => 'required|min:5|max:200',
-            'slug'  => 'max:200',
-            'description' => 'string||min:3|max:200',
-            'parent_id'  => 'required|integer|exists:blog_categories,id',
-        ];*/
-
-        //$validatedData = $this->validate($request, $rules);
 
         $item = BlogCategory::find($id);
             if(empty($item)){
@@ -93,7 +92,11 @@ class CategoryController extends BaseController
                     ->withInput();
             }
         $data = $request->all();
-        $result = $item->fill($data)->save();
+        if (empty($data['slug'])) {
+            $data['slug'] = str_slug($data['title']);
+        }
+
+        $result = $item->update($data);
 
         if($result) {
             return redirect()
